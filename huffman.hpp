@@ -73,3 +73,5 @@ class huffman{
         void decompress();
 };
 
+
+#endif

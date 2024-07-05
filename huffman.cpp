@@ -250,10 +250,10 @@ void huffman::saveDecodedFile(){
                 curr=root;
             }
         }
-    
+    }
     infile.close();
     outfile.close();
-
+}
 
 void huffman::decompress(){
     getTree();
