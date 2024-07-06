@@ -3,6 +3,7 @@
 #include<string>
 #include<vector>
 #include<fstream>
+#include<iostream>
 #include<queue>
 using namespace std;
 
@@ -12,7 +13,7 @@ struct Node{
     char data;
     unsigned int freq;
     string code;
-    Node* left,right;
+    Node* left,*right;
 
     Node(){
         left=right=NULL;
@@ -37,7 +38,7 @@ class huffman{
         priority_queue<Node*,vector<Node*>,Compare>minHeap;
 
         //for initializing the freqarr 
-        void inifreqarr();
+        // void inifreqarr();
 
         //for like traversin the  constructed nodes for each character to get respective code..
         void traverse(Node*,string);
@@ -48,7 +49,7 @@ class huffman{
         string decToBinary(int);
 
         //reconstructing the binary tree while decoding the binary fiile/
-        void buildTree(char,string&);
+        void buildTree(char,string);
 
         void createMinHeap();
 
@@ -67,8 +68,9 @@ class huffman{
         huffman(string inFileName,string outFileName){
             this->inFileName=inFileName;
             this->outFileName=outFileName;
-            create();
+            inifreqarr();
         }
+        void inifreqarr();
         void compress();
         void decompress();
 };

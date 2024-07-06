@@ -4,14 +4,14 @@ void huffman::inifreqarr(){
     for(int i=0;i<128;i++){
         freqarr.push_back(new Node());
         freqarr[i]->data=i;
-        freqarr->freq=0;
+        freqarr[i]->freq=0;
     }
 }
 
 
-void huffman:: traverse(Node* root,string str){
-    if(!root){
-        r->code=s;
+void huffman:: traverse(Node* root,string s){
+    if(!root->left && !root->right){
+        root->code=s;
         return;
     }
     traverse(root->left,s+'0');
@@ -28,12 +28,12 @@ int huffman::binToDec(string inStr){
 
 string huffman::decToBinary(int inNum){
     string temp="",res="";
-    which(inNum>0){
-        temp+=(inNum%+'0');
+    while(inNum>0){
+        temp+=(inNum%2+'0');
         inNum/=2;
     }
     res.append(8-temp.length(),'0');
-    for(int i=temp.length()-1,i>=0;i--){
+    for(int i=temp.length()-1;i>=0;i--){
         res+=temp[i];
     }
     return res;
@@ -50,7 +50,7 @@ void huffman::createMinHeap(){
     }
     infile.close();
     for(int i=0;i<128;i++){
-        if(freqarr[i]>0){
+        if(freqarr[i]->freq>0){
             minHeap.push(freqarr[i]);
         }
     }
@@ -85,9 +85,9 @@ void huffman::createCodes(){
 void huffman::savedEncodedFile(){
     //saving encoded (.huf) file 
     infile.open(inFileName,ios::in);
-    outfile.open(outFileName,ios::in |  ios::binary);
+    outfile.open(outFileName,ios::out |  ios::binary);
     string in="";  
-    string temp="";
+    string s="";
     char currchar;
     priority_queue<Node*,vector<Node*>,Compare>pq(minHeap);
     in+=(char)minHeap.size();//storing the number of unique characters as the firstt character in encoded string.
@@ -104,12 +104,12 @@ void huffman::savedEncodedFile(){
         }
         4.IF NEED OF APPPENDED ZEORS THEN THE NUMBER OF APPENDED ZEROS.
     */
-    while(!pq.size()){
+    while(!pq.empty()){
         Node* curr=pq.top();
         pq.pop();
         currchar=curr->data;
         in+=currchar;
-        s.assign(127-curr->node.length(),'0');
+        s.assign(127-curr->code.length(),'0');
         s+='1';
         s+=curr->code;
         //now saving the char eqquivalent of the decimal of each 8 bit of the string.
@@ -119,13 +119,14 @@ void huffman::savedEncodedFile(){
         }
     }
     s.clear();
+    char id;
     //now each characters code we have  to 
     // store like the decimal equivalent...
     infile.get(id);
     while(!infile.eof()) {
         s+=freqarr[id]->code;
         while(s.length()>8){
-            in+=(char)decToBinary(s.substr(0,8));
+            in+=(char)binToDec(s.substr(0,8));
             
             s=s.substr(8);
         }
@@ -134,7 +135,7 @@ void huffman::savedEncodedFile(){
     }  
 
     //if bits are less that 8 
-    if(s.length<8){
+    if(s.length()<8){
         s.append(8-s.length(),'0');
     }
     in+=(char)binToDec(s);
@@ -165,9 +166,9 @@ void huffman::getTree(){
     //now next 1+16 bytes or characters containes the actual char data and the string code 
     for(int i=0;i<size;i++){
 
-        char currchar;
+        char acode;
         unsigned char hCodeC[16];
-        infile.read(&currchar,1);
+        infile.read(&acode,1);
         infile.read(reinterpret_cast<char*>(hCodeC),16);
 
         //converting the decimal equivalent characters into their binary equivalend to obtain the code
@@ -183,7 +184,7 @@ void huffman::getTree(){
         }
         hCodeStr=hCodeStr.substr(j+1);
 
-        buildTree(currchar,hCodeStr);
+        buildTree(acode,hCodeStr);
     }
     infile.close();
 
@@ -193,12 +194,12 @@ void huffman::buildTree(char currchar,string path){
     Node* curr=root;
     for(int i=0;i<path.length();i++){
         if(path[i]=='0'){
-            if(!curr->left){
+            if(curr->left==NULL){
                 curr->left=new Node();
             }
             curr=curr->left;
         }else if(path[i]=='1'){
-            if(!curr->right){
+            if(curr->right==NULL){
                 curr->right=new Node();
             }
             curr=curr->right;
@@ -220,12 +221,12 @@ void huffman::saveDecodedFile(){
     char countOfZeros;
     infile.read(&countOfZeros,1);
     // ignoring the metadata
-    infile.seekg(1+17*size,ios::beg);
+    infile.seekg(1+(17*size),ios::beg);
     
     vector<unsigned char>text;
     unsigned char textseg;
     infile.read(reinterpret_cast<char*>(&textseg),1);
-    which(!infile.eof()){
+    while(!infile.eof()){
         text.push_back(textseg);
         infile.read(reinterpret_cast<char*>(&textseg),1);
     }
@@ -254,6 +255,7 @@ void huffman::saveDecodedFile(){
     infile.close();
     outfile.close();
 }
+
 
 void huffman::decompress(){
     getTree();

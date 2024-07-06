@@ -4,7 +4,7 @@
 using namespace  std;
 
 int main(int argc,char* argv[]){
-    if(arg!=3){
+    if(argc!=3){
         cout<<"Failed to detect Files";
         exit(1);
     }
