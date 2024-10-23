@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/file_compressor.dir/huffman.cpp.o CMakeFiles/file_compressor.dir/encode.cpp.o CMakeFiles/file_compressor.dir/decode.cpp.o -o file_compressor 

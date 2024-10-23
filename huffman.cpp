@@ -9,6 +9,7 @@ void huffman::inifreqarr(){
 }
 
 
+
 void huffman:: traverse(Node* root,string s){
     if(!root->left && !root->right){
         root->code=s;
@@ -127,10 +128,8 @@ void huffman::savedEncodedFile(){
         s+=freqarr[id]->code;
         while(s.length()>8){
             in+=(char)binToDec(s.substr(0,8));
-            
             s=s.substr(8);
         }
-        
         infile.get(id);
     }  
 
@@ -148,10 +147,21 @@ void huffman::savedEncodedFile(){
 }
 
 void huffman::compress(){
-    createMinHeap();
-    createTree();
-    createCodes();
-    savedEncodedFile();
+    using namespace std;
+    ifstream infile(inFileName,ios::binary|ios::ate);
+    streamsize size=infile.tellg();
+    cout<<size<<endl;
+    infile.close();
+    if(size>50*1024*1024){
+        cout<<"compressing large file"<<endl;
+        compressLargeFile();
+    }else{
+        createMinHeap();
+        createTree();
+        createCodes();
+        savedEncodedFile();
+    }
+    
 }
 
 
@@ -182,7 +192,7 @@ void huffman::getTree(){
         while(hCodeStr[j]=='0'){
             j++;
         }
-        hCodeStr=hCodeStr.substr(j+1);
+        hCodeStr=hCodeStr.substr(j+1);   
 
         buildTree(acode,hCodeStr);
     }
@@ -260,4 +270,63 @@ void huffman::saveDecodedFile(){
 void huffman::decompress(){
     getTree();
     saveDecodedFile();
+}
+
+void huffman::compressLargeFile() {
+    unsigned int numThreads = std::thread::hardware_concurrency();
+    if (numThreads == 0) numThreads = 2; // Fallback to 2 threads if hardware_concurrency() returns 0
+
+    std::ifstream infile(inFileName, std::ios::in | std::ios::binary);
+    if (!infile.is_open()) {
+        throw std::runtime_error("Failed to open input file.");
+    }
+
+    infile.seekg(0, std::ios::end);
+    std::streampos fileSize = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    std::streamoff partSize = fileSize / numThreads;
+
+    std::vector<std::future<std::vector<int>>> futures;
+
+    for (unsigned int i = 0; i < numThreads; ++i) {
+        futures.push_back(std::async(std::launch::async, [&, i]() {
+            std::ifstream partFile(inFileName, std::ios::in | std::ios::binary);
+            std::streampos start = i * partSize;
+            std::streampos end = (i == numThreads - 1) ? fileSize : static_cast<std::streampos>((i + 1) * partSize);
+            std::vector<int> localFreqArr(128, 0);
+            processPart(partFile, localFreqArr, start, end);
+            return localFreqArr;
+        }));
+    }
+
+    std::vector<int> globalFreqArr(128, 0);
+    for (auto& future : futures) {
+        std::vector<int> localFreqArr = future.get();
+        for (int i = 0; i < 128; ++i) {
+            globalFreqArr[i] += localFreqArr[i];
+        }
+    }
+
+    for (int i = 0; i < 128; ++i) {
+        freqarr[i]->freq = globalFreqArr[i];
+        if (freqarr[i]->freq > 0) {
+            minHeap.push(freqarr[i]);
+        }
+    }
+    infile.close();
+    createTree();
+    createCodes();
+    savedEncodedFile();
+}
+
+
+
+
+
+void huffman::processPart(std::ifstream& infile, std::vector<int>& localFreqArr, std::streampos start, std::streampos end) {
+    infile.seekg(start);
+    char id;
+    while (infile.tellg() < end && infile.get(id)) {
+        localFreqArr[static_cast<unsigned char>(id)]++;
+    }
 }

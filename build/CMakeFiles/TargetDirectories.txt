@@ -1,0 +1,3 @@
+/home/aditya/Desktop/file_compressor/FILE-COMPRESSOR-TOOL/build/CMakeFiles/file_compressor.dir
+/home/aditya/Desktop/file_compressor/FILE-COMPRESSOR-TOOL/build/CMakeFiles/edit_cache.dir
+/home/aditya/Desktop/file_compressor/FILE-COMPRESSOR-TOOL/build/CMakeFiles/rebuild_cache.dir

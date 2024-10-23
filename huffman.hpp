@@ -5,6 +5,8 @@
 #include<fstream>
 #include<iostream>
 #include<queue>
+#include<thread>
+#include<future>
 using namespace std;
 
 //defining the node for the huffman tree 
@@ -25,7 +27,7 @@ class huffman{
         vector<Node*>freqarr;
         fstream infile,outfile;
         string inFileName,outFileName;
-
+        
         Node* root;
 
         class Compare{
@@ -54,6 +56,7 @@ class huffman{
         void createMinHeap();
 
         void createTree();
+        void processPart(std::ifstream& infile, std::vector<int>& localFreqArr, std::streampos start, std::streampos end);
 
         void createCodes();
 
@@ -72,6 +75,7 @@ class huffman{
         }
         void inifreqarr();
         void compress();
+        void compressLargeFile();
         void decompress();
 };
 
